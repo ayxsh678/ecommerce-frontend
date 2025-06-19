@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart | Style Cart</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      padding: 10px 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .logo img {
+      height: 40px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 15px;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: #333;
+      padding: 6px 10px;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    .nav-links a:hover {
+      background-color: #f0f0f0;
+    }
+    .cart-container {
+      position: relative;
+    }
+    .cart-container img {
+      height: 24px;
+      cursor: pointer;
+    }
+    .cart-count {
+      background: red;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 12px;
+      position: absolute;
+      top: -8px;
+      right: -8px;
+    }
+    main {
+      padding: 40px 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .cart-items {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    .cart-item {
+      display: flex;
+      gap: 20px;
+      border-bottom: 1px solid #ddd;
+      padding: 15px 0;
+      align-items: center;
+    }
+    .cart-item img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+    }
+    .item-info {
+      flex: 1;
+    }
+    .item-info h3 {
+      margin: 0 0 5px;
+    }
+    .item-info p {
+      margin: 4px 0;
+    }
+    .quantity-select {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .quantity-input {
+      width: 40px;
+      text-align: center;
+    }
+    .item-total {
+      font-weight: bold;
+      color: #333;
+      margin-top: 10px;
+    }
+    .remove-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .cart-summary {
+      text-align: right;
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .cart-footer {
+      margin-top: 30px;
+      text-align: center;
+    }
+    .btn {
+      background: #ff6f61;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      text-decoration: none;
+      margin: 0 10px;
+      display: inline-block;
+    }
+    .btn.disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    @media (max-width: 600px) {
+      .cart-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .cart-item img {
+        margin-bottom: 10px;
+      }
+      .quantity-select {
+        flex-wrap: wrap;
+      }
+      .cart-summary {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="assets/icons/logo.png" alt="Style Cart Logo">
+    </div>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="index.html#productGrid">Products</a>
+      <a href="index.html#about">About</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <div class="cart-container">
+      <img src="assets/icons/shopping-cart-svgrepo-com.svg" alt="Cart">
+      <span class="cart-count" id="cartCount">0</span>
+    </div>
+  </header>
+
+  <main>
+    <h1>Your Shopping Cart</h1>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-summary" id="cartTotal"></div>
+    <div class="cart-footer">
+      <a href="index.html" class="btn">Continue Shopping</a>
+      <a href="checkout.html" class="btn" id="checkoutBtn">Proceed to Checkout</a>
+    </div>
+  </main>
+
+  <script>
+    const cartItemsContainer = document.getElementById('cartItems');
+    const cartTotal = document.getElementById('cartTotal');
+    const cartCount = document.getElementById('cartCount');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+
+    function updateCartCount(count) {
+      cartCount.textContent = count;
+    }
+
+    function renderCart() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      cartItemsContainer.innerHTML = '';
+      let total = 0;
+
+      if (cart.length === 0) {
+        cartItemsContainer.innerHTML = '<p>Your cart is empty.</p>';
+        cartTotal.textContent = '';
+        checkoutBtn.classList.add('disabled');
+        checkoutBtn.setAttribute('href', '#');
+        updateCartCount(0);
+        return;
+      }
+
+      cart.forEach((item, index) => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+          <img src="${item.image}" alt="${item.title}">
+          <div class="item-info">
+            <h3>${item.title}</h3>
+            <p>Price: $${item.price.toFixed(2)}</p>
+            <div class="quantity-select">
+              <label>Qty:</label>
+              <input type="number" min="1" value="${item.quantity}" class="quantity-input" data-index="${index}">
+            </div>
+            <div class="item-total">Total: $${itemTotal.toFixed(2)}</div>
+            <button class="remove-btn" data-index="${index}">Remove</button>
+          </div>
+        `;
+        cartItemsContainer.appendChild(div);
+      });
+
+      cartTotal.textContent = `Cart Total: $${total.toFixed(2)}`;
+      updateCartCount(cart.reduce((sum, item) => sum + item.quantity, 0));
+      checkoutBtn.classList.remove('disabled');
+      checkoutBtn.setAttribute('href', 'checkout.html');
+    }
+
+    cartItemsContainer.addEventListener('click', e => {
+      if (e.target.classList.contains('remove-btn')) {
+        const index = parseInt(e.target.dataset.index);
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart.splice(index, 1);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
+      }
+    });
+
+    cartItemsContainer.addEventListener('input', e => {
+      if (e.target.classList.contains('quantity-input')) {
+        const index = parseInt(e.target.dataset.index);
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const newQuantity = Math.max(1, parseInt(e.target.value));
+        cart[index].quantity = newQuantity;
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', renderCart);
+  </script>
+</body>
+</html>
